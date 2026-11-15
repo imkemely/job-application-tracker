@@ -1,0 +1,45 @@
+/* Job Application Tracker - custom styles on top of Bootstrap */
+
+body {
+    background-color: #f5f7fb;
+}
+
+.navbar-brand i {
+    margin-right: 4px;
+}
+
+.nav-link.active {
+    font-weight: 600;
+}
+
+/* Dashboard stat cards */
+.stat-card {
+    border: none;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Tables */
+.table-card {
+    border: none;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+.table td.actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Skill badges (job requirements, job match) */
+.skill-badge {
+    font-weight: 500;
+    margin: 0 4px 4px 0;
+}

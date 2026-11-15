@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Dashboard</h1>
+
+<div class="row g-3">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Companies</div>
+                <div class="stat-number">{{ counts.companies }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Jobs</div>
+                <div class="stat-number">{{ counts.jobs }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Applications</div>
+                <div class="stat-number">{{ counts.applications }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Contacts</div>
+                <div class="stat-number">{{ counts.contacts }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
