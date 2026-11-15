@@ -16,6 +16,12 @@ body {
 .stat-card {
     border: none;
     border-left: 4px solid var(--bs-primary);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+a.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
 }
 
 .stat-number {
@@ -24,9 +30,43 @@ body {
     line-height: 1.2;
 }
 
-/* Tables */
-.table-card {
+.stat-icon {
+    font-size: 1.75rem;
+    color: var(--bs-primary);
+    opacity: 0.35;
+}
+
+/* Calendar-style date for upcoming interviews */
+.date-chip {
+    min-width: 48px;
+    text-align: center;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    line-height: 1.1;
+}
+
+.date-chip .month {
+    background-color: var(--bs-primary);
+    color: #fff;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    padding: 2px 0;
+}
+
+.date-chip .day {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 2px 0;
+}
+
+/* Cards and tables */
+.card {
     border: none;
+}
+
+.card-header {
+    border-bottom: 1px solid var(--bs-border-color-translucent);
 }
 
 .table th {

@@ -2,6 +2,7 @@
 import json
 import os
 import re
+from collections import Counter
 from datetime import date, datetime
 
 import mysql.connector
@@ -134,6 +135,11 @@ def add_skills(rows):
 # ------------------------------------------------------------
 # Dashboard
 # ------------------------------------------------------------
+def percent(part, whole):
+    """Whole-number percentage, or 0 if there's nothing to divide by."""
+    return round(part * 100 / whole) if whole else 0
+
+
 @app.route("/")
 def dashboard():
     counts = query(
@@ -146,7 +152,73 @@ def dashboard():
         """,
         one=True,
     )
-    return render_template("dashboard.html", counts=counts)
+
+    # Applications per status (every status shows up, even with 0)
+    status_counts = {status: 0 for status in STATUSES}
+    for row in query("SELECT status, COUNT(*) AS n FROM applications GROUP BY status"):
+        status_counts[row["status"]] = row["n"]
+
+    total = counts["applications"]
+    withdrawn = status_counts["Withdrawn"]
+    considered = total - withdrawn  # applications the company actually got to decide on
+    heard_back = considered - status_counts["Applied"]  # anything past "Applied"
+    stats = {
+        "active": status_counts["Applied"] + status_counts["Screening"] + status_counts["Interview"],
+        "offers": status_counts["Offer"],
+        "response_rate": percent(heard_back, considered),
+        "interview_rate": percent(status_counts["Interview"] + status_counts["Offer"], considered),
+    }
+    pipeline = [
+        {"status": s, "count": status_counts[s], "percent": percent(status_counts[s], total)}
+        for s in STATUSES
+    ]
+
+    # Interviews come out of the interview_data JSON column
+    interview_sql = """
+        SELECT * FROM (
+            SELECT a.application_id, a.status, j.job_title, c.company_name,
+                   CAST(JSON_UNQUOTE(JSON_EXTRACT(a.interview_data, '$.interview_date')) AS DATE) AS interview_date,
+                   JSON_UNQUOTE(JSON_EXTRACT(a.interview_data, '$.interview_type')) AS interview_type
+            FROM applications a
+            JOIN jobs j      ON j.job_id = a.job_id
+            JOIN companies c ON c.company_id = j.company_id
+            WHERE JSON_EXTRACT(a.interview_data, '$.interview_date') IS NOT NULL
+        ) AS interviews
+    """
+    upcoming = query(interview_sql + " WHERE interview_date >= CURDATE() ORDER BY interview_date LIMIT 5")
+    past = query(interview_sql + " WHERE interview_date < CURDATE() ORDER BY interview_date DESC LIMIT 3")
+
+    recent = query(
+        """
+        SELECT a.application_id, a.application_date, a.status, j.job_title, c.company_name
+        FROM applications a
+        JOIN jobs j      ON j.job_id = a.job_id
+        JOIN companies c ON c.company_id = j.company_id
+        ORDER BY a.application_date DESC, a.application_id DESC
+        LIMIT 5
+        """
+    )
+
+    # Most requested skills across all jobs (from the requirements JSON)
+    skill_counts = Counter()
+    display_name = {}
+    for job in add_skills(query("SELECT requirements FROM jobs")):
+        for skill in job["skills"]:
+            key = skill.lower()
+            skill_counts[key] += 1
+            display_name.setdefault(key, skill)
+    top_skills = [(display_name[key], n) for key, n in skill_counts.most_common(10)]
+
+    return render_template(
+        "dashboard.html",
+        counts=counts,
+        stats=stats,
+        pipeline=pipeline,
+        upcoming=upcoming,
+        past=past,
+        recent=recent,
+        top_skills=top_skills,
+    )
 
 
 # ------------------------------------------------------------
