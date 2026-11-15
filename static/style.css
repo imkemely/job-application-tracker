@@ -1,92 +1,360 @@
-/* Job Application Tracker - custom styles on top of Bootstrap */
+/* my colors on top of bootstrap: baby blue + baby yellow */
+
+:root {
+    --blue-light: #e3f1fc;
+    --blue: #bfe0f8;
+    --blue-mid: #a9d4f5;
+    --blue-dark: #2f6fa3;
+    --yellow-light: #fff6d6;
+    --yellow: #ffe89a;
+    --ink: #1f3b57;
+
+    --bs-link-color: #1f3b57;
+    --bs-link-color-rgb: 31, 59, 87;
+    --bs-link-hover-color: #2f6fa3;
+    --bs-link-hover-color-rgb: 47, 111, 163;
+}
 
 body {
-    background-color: #f5f7fb;
+    background-color: #fffdf6;
+    font-family: "Nunito", sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #24303d;
 }
 
-.navbar-brand i {
-    margin-right: 4px;
+/* same width for the navbar and the page so they line up */
+.navbar .container,
+main.container {
+    max-width: 1100px;
 }
 
-.nav-link.active {
+main.container {
+    padding-top: 10px;
+}
+
+h2 {
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+h4, h5 {
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+/* bootstrap's gray is a bit light, make it easier to read */
+.text-muted {
+    color: #5b6773 !important;
+}
+
+/* tables: more room in each cell, no stripes */
+.table {
+    --bs-table-bg: #fff;
+    margin-bottom: 28px;
+}
+
+.table > :not(caption) > * > * {
+    padding: 12px 14px;
+    border-color: #e8eef4;
+}
+
+.table thead th {
+    background-color: var(--blue-light);
+    color: var(--ink);
+    font-weight: 700;
+    border-bottom: 2px solid var(--blue);
+}
+
+.table-responsive {
+    border-radius: 8px;
+    border: 1px solid var(--blue);
+    margin-bottom: 28px;
+}
+
+.table-responsive .table {
+    margin-bottom: 0;
+}
+
+.table-responsive tr:last-child td {
+    border-bottom: none;
+}
+
+/* links look like normal text, and only underline when you hover */
+a {
+    text-decoration: none;
+}
+
+a:not(.btn):not(.nav-link):not(.navbar-brand):hover {
+    text-decoration: underline;
+}
+
+td a,
+.list-link {
     font-weight: 600;
 }
 
-/* Dashboard stat cards */
-.stat-card {
-    border: none;
-    border-left: 4px solid var(--bs-primary);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+.back-link {
+    color: #6c757d;
+    font-size: 0.9rem;
 }
 
-a.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+/* detail pages (one company, job, application or contact) */
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 12px 0 24px;
 }
 
-.stat-number {
-    font-size: 2rem;
+.detail-header h2 {
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-size: 1.15rem;
+    color: #5b6773;
+}
+
+.subtitle a {
     font-weight: 700;
-    line-height: 1.2;
+    color: var(--blue-dark);
 }
 
-.stat-icon {
-    font-size: 1.75rem;
-    color: var(--bs-primary);
-    opacity: 0.35;
+.detail-buttons {
+    display: flex;
+    gap: 8px;
 }
 
-/* Calendar-style date for upcoming interviews */
-.date-chip {
-    min-width: 48px;
-    text-align: center;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 6px;
+.detail-table {
+    margin-bottom: 0;
+}
+
+.detail-table th {
+    width: 160px;
+    color: #5b6773;
+    font-weight: 600;
+}
+
+.detail-table tr:last-child td,
+.detail-table tr:last-child th {
+    border-bottom: none;
+}
+
+.not-saved {
+    color: #9aa4ae;
+    font-style: italic;
+}
+
+/* navbar */
+.navbar {
+    background-color: var(--blue);
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+.navbar .nav-link {
+    margin-left: 8px;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.navbar .nav-link {
+    color: var(--ink);
+}
+
+.navbar .nav-link:hover {
+    color: var(--blue-dark);
+}
+
+/* buttons */
+.btn-primary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-bg: var(--yellow);
+    --bs-btn-border-color: var(--yellow);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: #ffdf73;
+    --bs-btn-hover-border-color: #ffdf73;
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: #ffdf73;
+    --bs-btn-disabled-color: var(--ink);
+    --bs-btn-disabled-bg: var(--yellow-light);
+    --bs-btn-disabled-border-color: var(--yellow-light);
+    font-weight: 700;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--blue-dark);
+    --bs-btn-border-color: var(--blue-mid);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--blue-light);
+    --bs-btn-hover-border-color: var(--blue-mid);
+}
+
+.form-check-input:checked {
+    background-color: var(--blue-dark);
+    border-color: var(--blue-dark);
+}
+
+/* white box behind the forms */
+.form-box {
+    background: #fff;
+    padding: 24px 28px;
+    border-radius: 8px;
+    border: 1px solid var(--blue);
+}
+
+/* dashboard boxes */
+.box {
+    background: #fff;
+    border: 1px solid var(--blue);
+    border-radius: 10px;
+    padding: 20px 24px;
+}
+
+.box-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.box-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+/* weekly goal bar */
+.week-progress {
+    height: 12px;
+    background-color: var(--yellow-light);
+}
+
+.week-progress .progress-bar {
+    background-color: #f6d76b;
+}
+
+/* list / board switch on the applications page */
+.view-switch {
+    display: inline-flex;
+    border: 1px solid var(--blue-mid);
+    border-radius: 8px;
     overflow: hidden;
-    line-height: 1.1;
 }
 
-.date-chip .month {
-    background-color: var(--bs-primary);
-    color: #fff;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    padding: 2px 0;
+.view-switch a {
+    padding: 6px 18px;
+    color: var(--ink);
+    font-weight: 600;
 }
 
-.date-chip .day {
-    font-size: 1.1rem;
+.view-switch a:hover {
+    text-decoration: none !important;
+    background-color: var(--blue-light);
+}
+
+.view-switch a.active {
+    background-color: var(--blue);
+}
+
+/* applications board (like a github project board) */
+.board {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(165px, 1fr));
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.board-col {
+    background-color: #eef6fd;
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 420px;
+}
+
+.board-col.drag-over {
+    background-color: #dcecfb;
+    outline: 2px dashed var(--blue-mid);
+}
+
+.board-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.board-card {
+    background-color: #fff;
+    border: 1px solid #d6e6f5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    cursor: grab;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.board-card .text-muted {
+    font-size: 0.9rem;
+}
+
+.board-card .card-date {
+    margin-top: 4px;
+}
+
+.board-card.dragging {
+    opacity: 0.5;
+}
+
+/* status colors */
+.status { font-weight: 700; font-size: 0.85rem; padding: 0.45em 0.75em; }
+.status-applied   { background-color: #cfe5fb; color: #1f4a75; }
+.status-screening { background-color: #d5f0f4; color: #16535e; }
+.status-interview { background-color: #fff0b8; color: #6b5200; }
+.status-offer     { background-color: #d2f0dc; color: #1d5a35; }
+.status-rejected  { background-color: #fbd9dc; color: #7a1f2a; }
+.status-withdrawn { background-color: #e6e8ec; color: #4a5260; }
+
+.skill {
+    background-color: var(--blue-light);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.45em 0.75em;
+    margin: 0 4px 6px 0;
+}
+
+/* job match skill buttons (click to select) */
+.skill-pill {
+    --bs-btn-color: var(--ink);
+    --bs-btn-bg: #fff;
+    --bs-btn-border-color: var(--blue-mid);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--blue-light);
+    --bs-btn-hover-border-color: var(--blue-mid);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: var(--blue);
+    --bs-btn-active-border-color: var(--blue-dark);
+    border-radius: 999px;
+    padding: 4px 14px;
+    margin: 0 6px 8px 0;
+    font-size: 0.95rem;
+}
+
+.btn-check:checked + .skill-pill,
+.btn-check:checked + .skill-pill:hover {
+    background-color: var(--blue);
+    border-color: var(--blue-dark);
     font-weight: 700;
-    padding: 2px 0;
 }
 
-/* Cards and tables */
-.card {
-    border: none;
-}
-
-.card-header {
-    border-bottom: 1px solid var(--bs-border-color-translucent);
-}
-
-.table th {
-    white-space: nowrap;
-}
-
-.table td.actions {
-    white-space: nowrap;
-    text-align: right;
-}
-
-/* Skill badges (job requirements, job match) */
-.skill-badge {
-    font-weight: 500;
-    margin: 0 4px 4px 0;
-}
-
-/* Job Match */
-.match-percent {
-    font-size: 1.75rem;
-    font-weight: 700;
-    line-height: 1;
-}
+/* job match */
+.match-high { color: #1d7a45; }
+.match-mid  { color: #8a6400; }
+.match-low  { color: #a3303d; }
+.missing    { color: #a3303d; }

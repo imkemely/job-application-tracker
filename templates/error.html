@@ -3,21 +3,14 @@
 
 {% block content %}
 {% if not_found %}
-    <div class="text-center py-5">
-        <h1 class="display-6">Page not found</h1>
-        <p class="text-muted">That page doesn't exist (yet).</p>
-        <a href="/" class="btn btn-primary">Back to Dashboard</a>
-    </div>
+    <h2>Page not found</h2>
+    <p><a href="/">Go back to the dashboard</a></p>
 {% else %}
     <div class="alert alert-danger">
-        <h1 class="h5"><i class="bi bi-exclamation-triangle"></i> Database error</h1>
-        <p class="mb-2">The app couldn't talk to MySQL. Check that:</p>
-        <ul class="mb-2">
-            <li>The MySQL server is running</li>
-            <li>The settings in your <code>.env</code> file (user, password, database) are correct</li>
-            <li>You ran <code>schema.sql</code> to create the <code>job_tracker</code> database</li>
-        </ul>
-        <small class="text-muted">Details: {{ error }}</small>
+        <h5>Couldn't connect to the database</h5>
+        <p class="mb-1">Make sure MySQL is running, the settings in <code>.env</code> are right,
+            and that you ran <code>schema.sql</code>.</p>
+        <small>{{ error }}</small>
     </div>
 {% endif %}
 {% endblock %}

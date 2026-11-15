@@ -3,170 +3,129 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">Dashboard</h1>
+<h2>Dashboard</h2>
 
-<!-- Table counts -->
-<div class="row g-3 mb-4">
-    {% for label, key, href, icon in [
-        ('Companies', 'companies', url_for('companies'), 'bi-building'),
-        ('Jobs', 'jobs', url_for('jobs'), 'bi-briefcase'),
-        ('Applications', 'applications', url_for('applications'), 'bi-send'),
-        ('Contacts', 'contacts', url_for('contacts'), 'bi-person-lines-fill'),
-    ] %}
+<div class="row g-4 mb-4">
     <div class="col-6 col-md-3">
-        <a href="{{ href }}" class="card stat-card shadow-sm text-decoration-none text-body h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted small">{{ label }}</div>
-                    <div class="stat-number">{{ counts[key] }}</div>
-                </div>
-                <i class="bi {{ icon }} stat-icon"></i>
-            </div>
-        </a>
+        <div class="box">
+            <div class="box-label">Companies</div>
+            <div class="box-number">{{ counts.companies }}</div>
+        </div>
     </div>
-    {% endfor %}
+    <div class="col-6 col-md-3">
+        <div class="box">
+            <div class="box-label">Jobs</div>
+            <div class="box-number">{{ counts.jobs }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="box">
+            <div class="box-label">Applications</div>
+            <div class="box-number">{{ counts.applications }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="box">
+            <div class="box-label">Contacts</div>
+            <div class="box-number">{{ counts.contacts }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="box mb-4">
+    <h5>This week</h5>
+    <p class="mb-2">
+        <span class="box-number">{{ this_week }}</span>
+        <span class="text-muted">of {{ weekly_goal }} applications</span>
+    </p>
+    <div class="progress week-progress">
+        <div class="progress-bar" style="width: {{ week_percent }}%"></div>
+    </div>
+    <p class="text-muted mt-2 mb-0">
+        {% if this_week >= weekly_goal %}
+            Goal reached this week!
+        {% else %}
+            {{ weekly_goal - this_week }} more to hit the goal. Resets every Monday.
+        {% endif %}
+    </p>
 </div>
 
 <div class="row g-4 mb-4">
-    <!-- Application pipeline -->
-    <div class="col-lg-7">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Application pipeline</div>
-            <div class="card-body">
-                <div class="row text-center mb-4">
-                    <div class="col-3">
-                        <div class="h4 mb-0">{{ stats.active }}</div>
-                        <div class="small text-muted">Active</div>
-                    </div>
-                    <div class="col-3">
-                        <div class="h4 mb-0">{{ stats.response_rate }}%</div>
-                        <div class="small text-muted">Response rate</div>
-                    </div>
-                    <div class="col-3">
-                        <div class="h4 mb-0">{{ stats.interview_rate }}%</div>
-                        <div class="small text-muted">Interview rate</div>
-                    </div>
-                    <div class="col-3">
-                        <div class="h4 mb-0 text-success">{{ stats.offers }}</div>
-                        <div class="small text-muted">Offers</div>
-                    </div>
-                </div>
-
-                {% if counts.applications %}
-                    {% for p in pipeline %}
-                    <a href="{{ url_for('applications', status=p.status) }}" class="d-block text-decoration-none text-body mb-2">
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>{{ p.status }}</span>
-                            <span class="text-muted">{{ p.count }} ({{ p.percent }}%)</span>
-                        </div>
-                        <div class="progress" style="height: 10px;" role="progressbar"
-                             aria-label="{{ p.status }}" aria-valuenow="{{ p.percent }}" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-bar bg-{{ STATUS_COLORS[p.status] }}" style="width: {{ p.percent }}%"></div>
-                        </div>
-                    </a>
-                    {% endfor %}
-                    <p class="small text-muted mb-0 mt-3">
-                        Response rate = applications that moved past "Applied", out of all applications except withdrawn ones.
-                    </p>
-                {% else %}
-                    <p class="text-muted mb-0">No applications yet. <a href="{{ url_for('add_application') }}">Add one</a> to see your pipeline.</p>
-                {% endif %}
-            </div>
+    <div class="col-lg-5">
+        <div class="box h-100">
+            <h5>Applications by status</h5>
+            <p class="text-muted">{{ active }} still active &middot; {{ response_rate }}% response rate</p>
+            <table class="table mb-0">
+                {% for s in STATUSES %}
+                <tr>
+                    <td><a href="{{ url_for('applications', status=s) }}">{{ s }}</a></td>
+                    <td class="text-end">{{ status_counts[s] }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="fw-bold">
+                    <td>Total</td>
+                    <td class="text-end">{{ total }}</td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <!-- Interviews -->
-    <div class="col-lg-5">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Interviews</div>
-            <div class="card-body">
-                <h2 class="h6 text-muted">Upcoming</h2>
-                {% if upcoming %}
-                    <ul class="list-unstyled mb-3">
-                        {% for i in upcoming %}
-                        <li class="d-flex align-items-start gap-3 mb-2">
-                            <div class="date-chip">
-                                <div class="month">{{ i.interview_date.strftime('%b') }}</div>
-                                <div class="day">{{ i.interview_date.day }}</div>
-                            </div>
-                            <div>
-                                <a href="{{ url_for('application_detail', application_id=i.application_id) }}" class="fw-semibold text-decoration-none">{{ i.job_title }}</a>
-                                <div class="small text-muted">{{ i.company_name }}{% if i.interview_type %} · {{ i.interview_type }}{% endif %}</div>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="small text-muted">No upcoming interviews scheduled.</p>
-                {% endif %}
-
-                {% if past %}
-                <h2 class="h6 text-muted mt-3">Recent</h2>
-                <ul class="list-unstyled mb-0 small">
-                    {% for i in past %}
-                    <li class="mb-1">
-                        <span class="text-muted">{{ i.interview_date }}</span> ·
-                        <a href="{{ url_for('application_detail', application_id=i.application_id) }}" class="text-decoration-none">{{ i.job_title }}</a>
-                        at {{ i.company_name }}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
+    <div class="col-lg-7">
+        <div class="box h-100">
+            <h5>Recent applications</h5>
+            {% if recent %}
+            <table class="table mb-0">
+                {% for a in recent %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('application_detail', application_id=a.application_id) }}">{{ a.job_title }}</a>
+                        <div class="text-muted">{{ a.company_name }}</div>
+                    </td>
+                    <td class="text-nowrap text-end">
+                        <div>{{ status_badge(a.status) }}</div>
+                        <div class="text-muted mt-1">{{ a.application_date }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p class="text-muted mb-0">No applications yet.</p>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Recent applications -->
-    <div class="col-lg-7">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span class="fw-semibold">Recent applications</span>
-                <a href="{{ url_for('applications') }}" class="small text-decoration-none">View all</a>
-            </div>
-            {% if recent %}
-            <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
-                    <tbody>
-                        {% for a in recent %}
-                        <tr>
-                            <td class="ps-3">
-                                <a href="{{ url_for('application_detail', application_id=a.application_id) }}" class="text-decoration-none">{{ a.job_title }}</a>
-                                <div class="small text-muted">{{ a.company_name }}</div>
-                            </td>
-                            <td class="small text-muted text-nowrap">{{ a.application_date }}</td>
-                            <td class="pe-3 text-end">{{ status_badge(a.status) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <div class="col-lg-6">
+        <div class="box h-100">
+            <h5>Interviews</h5>
+            {% if interviews %}
+            <ul class="list-unstyled mb-0">
+                {% for i in interviews %}
+                <li class="mb-3">
+                    <a href="{{ url_for('application_detail', application_id=i.application_id) }}" class="list-link">{{ i.job_title }}</a>
+                    <div class="text-muted">
+                        {{ i.company_name }} &middot; {{ i.interview_date or 'no date' }}{% if i.interview_type %} &middot; {{ i.interview_type }}{% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
             {% else %}
-            <div class="card-body text-muted">No applications yet.</div>
+            <p class="text-muted mb-0">No interviews yet.</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Most requested skills -->
-    <div class="col-lg-5">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span class="fw-semibold">Most requested skills</span>
-                <a href="/job-match" class="small text-decoration-none">Try Job Match</a>
-            </div>
-            <div class="card-body">
-                {% if top_skills %}
-                    {% for skill, n in top_skills %}
-                        <span class="badge rounded-pill bg-light text-dark border skill-badge">
-                            {{ skill }} <span class="text-muted">× {{ n }}</span>
-                        </span>
-                    {% endfor %}
-                    <p class="small text-muted mb-0 mt-2">How many of your saved jobs list each skill.</p>
-                {% else %}
-                    <p class="text-muted mb-0">Add jobs with required skills to see what's in demand.</p>
-                {% endif %}
-            </div>
+    <div class="col-lg-6">
+        <div class="box h-100">
+            <h5>Skills that come up the most</h5>
+            {% if top_skills %}
+                {% for skill, n in top_skills %}
+                    <span class="badge skill">{{ skill }} ({{ n }})</span>
+                {% endfor %}
+            {% else %}
+            <p class="text-muted mb-0">Add some jobs with skills to see this.</p>
+            {% endif %}
         </div>
     </div>
 </div>

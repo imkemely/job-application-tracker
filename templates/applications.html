@@ -4,88 +4,68 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Applications</h1>
-    <a href="{{ url_for('add_application') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Application
-    </a>
+    <h2 class="mb-0">Applications</h2>
+    <a href="{{ url_for('add_application') }}" class="btn btn-primary">Add Application</a>
 </div>
 
-<!-- Status filter -->
-<div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="{{ url_for('applications') }}"
-       class="btn btn-sm {% if not status %}btn-dark{% else %}btn-outline-dark{% endif %}">
-        All <span class="badge bg-light text-dark ms-1">{{ total }}</span>
-    </a>
-    {% for s in STATUSES %}
-        {% set color = STATUS_COLORS[s] %}
-        <a href="{{ url_for('applications', status=s) }}"
-           class="btn btn-sm {% if status == s %}btn-{{ color }}{% else %}btn-outline-{{ color }}{% endif %}">
-            {{ s }} <span class="badge bg-light text-dark ms-1">{{ counts.get(s, 0) }}</span>
-        </a>
-    {% endfor %}
+<div class="view-switch mb-3">
+    <a href="{{ url_for('applications') }}" class="active">List</a>
+    <a href="{{ url_for('applications_board') }}">Board</a>
 </div>
+
+<form method="get" class="row g-2 mb-3 filter-form">
+    <div class="col-md-3">
+        <select name="status" class="form-select">
+            <option value="">All statuses</option>
+            {% for s in STATUSES %}
+                <option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-secondary">Filter</button>
+        {% if status %}<a href="{{ url_for('applications') }}" class="btn btn-link">Clear</a>{% endif %}
+    </div>
+</form>
 
 {% if applications %}
-<div class="card table-card shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Job</th>
-                    <th>Applied</th>
-                    <th>Status</th>
-                    <th>Resume</th>
-                    <th class="text-center">Cover letter</th>
-                    <th>Interview</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for a in applications %}
-                <tr>
-                    <td>
-                        <a href="{{ url_for('application_detail', application_id=a.application_id) }}" class="fw-semibold text-decoration-none">{{ a.job_title }}</a>
-                        <div class="small text-muted">{{ a.company_name }}</div>
-                    </td>
-                    <td class="text-nowrap">{{ a.application_date }}</td>
-                    <td>{{ status_badge(a.status) }}</td>
-                    <td>{{ a.resume_version or '—' }}</td>
-                    <td class="text-center">
-                        {% if a.cover_letter_sent %}
-                            <i class="bi bi-check-circle-fill text-success" title="Sent"></i>
-                        {% else %}
-                            <i class="bi bi-dash text-muted" title="Not sent"></i>
-                        {% endif %}
-                    </td>
-                    <td class="text-nowrap">{{ a.interview_date or '—' }}</td>
-                    <td class="actions">
-                        <a href="{{ url_for('application_detail', application_id=a.application_id) }}" class="btn btn-sm btn-outline-secondary" title="View">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <a href="{{ url_for('edit_application', application_id=a.application_id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
-                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                data-action="{{ url_for('delete_application', application_id=a.application_id) }}"
-                                data-name="your application for {{ a.job_title }} at {{ a.company_name }}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% elif status %}
-<div class="text-center text-muted py-5">
-    No applications with status "{{ status }}". <a href="{{ url_for('applications') }}">Show all.</a>
+<div class="table-responsive">
+    <table class="table table-hover bg-white align-middle">
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Company</th>
+                <th>Applied</th>
+                <th>Status</th>
+                <th>Resume</th>
+                <th>Cover letter</th>
+                <th>Interview</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in applications %}
+            <tr>
+                <td><a href="{{ url_for('application_detail', application_id=a.application_id) }}">{{ a.job_title }}</a></td>
+                <td>{{ a.company_name }}</td>
+                <td class="text-nowrap">{{ a.application_date }}</td>
+                <td>{{ status_badge(a.status) }}</td>
+                <td class="text-nowrap">{{ a.resume_version or '' }}</td>
+                <td>{{ 'Yes' if a.cover_letter_sent else 'No' }}</td>
+                <td class="text-nowrap">{{ a.interview_date or '' }}</td>
+                <td class="text-end text-nowrap">
+                    <a href="{{ url_for('edit_application', application_id=a.application_id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form action="{{ url_for('delete_application', application_id=a.application_id) }}" method="post" class="d-inline"
+                          data-confirm="Delete this application for {{ a.job_title }}?">
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% else %}
-<div class="text-center text-muted py-5">
-    <i class="bi bi-send display-6 d-block mb-2"></i>
-    No applications yet. <a href="{{ url_for('add_application') }}">Add your first one.</a>
-</div>
+<p class="text-muted">No applications found.</p>
 {% endif %}
 {% endblock %}

@@ -2,51 +2,44 @@
 {% block title %}{{ contact.contact_name }}{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('contacts') }}" class="text-decoration-none small">
-    <i class="bi bi-arrow-left"></i> All contacts
-</a>
+<a href="{{ url_for('contacts') }}" class="back-link">&larr; Back to contacts</a>
 
-<div class="d-flex justify-content-between align-items-start mt-2 mb-3">
+<div class="detail-header">
     <div>
-        <h1 class="h3 mb-1">{{ contact.contact_name }}</h1>
-        <div class="text-muted">
-            {{ contact.title or 'No title listed' }} ·
-            <a href="{{ url_for('company_detail', company_id=contact.company_id) }}" class="text-decoration-none">
-                <i class="bi bi-building"></i> {{ contact.company_name }}
-            </a>
+        <h2>{{ contact.contact_name }}</h2>
+        <div class="subtitle">
+            {% if contact.title %}{{ contact.title }} {% endif %}at
+            <a href="{{ url_for('company_detail', company_id=contact.company_id) }}">{{ contact.company_name }}</a>
         </div>
     </div>
-    <div class="text-nowrap">
-        <a href="{{ url_for('edit_contact', contact_id=contact.contact_id) }}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil"></i> Edit
-        </a>
-        <button type="button" class="btn btn-outline-danger"
-                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                data-action="{{ url_for('delete_contact', contact_id=contact.contact_id) }}"
-                data-name="{{ contact.contact_name }} ({{ contact.company_name }})">
-            <i class="bi bi-trash"></i> Delete
-        </button>
+    <div class="detail-buttons">
+        <a href="{{ url_for('edit_contact', contact_id=contact.contact_id) }}" class="btn btn-outline-primary">Edit</a>
+        <form action="{{ url_for('delete_contact', contact_id=contact.contact_id) }}" method="post"
+              data-confirm="Delete {{ contact.contact_name }}?">
+            <button class="btn btn-outline-danger">Delete</button>
+        </form>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Email</dt>
-            <dd class="col-sm-9">
-                {% if contact.email %}<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% else %}—{% endif %}
-            </dd>
-            <dt class="col-sm-3">Phone</dt>
-            <dd class="col-sm-9">{{ contact.phone or '—' }}</dd>
-            <dt class="col-sm-3">LinkedIn</dt>
-            <dd class="col-sm-9 text-break">
-                {% if contact.linkedin_url %}
-                    <a href="{{ contact.linkedin_url }}" target="_blank" rel="noopener"><i class="bi bi-linkedin"></i> {{ contact.linkedin_url }}</a>
-                {% else %}—{% endif %}
-            </dd>
-            <dt class="col-sm-3">Notes</dt>
-            <dd class="col-sm-9 mb-0" style="white-space: pre-line;">{{ contact.notes or '—' }}</dd>
-        </dl>
-    </div>
+<div class="box">
+    <h5>Contact info</h5>
+    <table class="table detail-table">
+        <tr>
+            <th>Email</th>
+            <td>{% if contact.email %}<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% else %}<span class="not-saved">Not saved</span>{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Phone</th>
+            <td>{% if contact.phone %}{{ contact.phone }}{% else %}<span class="not-saved">Not saved</span>{% endif %}</td>
+        </tr>
+        <tr>
+            <th>LinkedIn</th>
+            <td>{% if contact.linkedin_url %}<a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.linkedin_url | short_url(true) }}</a>{% else %}<span class="not-saved">Not saved</span>{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Notes</th>
+            <td style="white-space: pre-line;">{% if contact.notes %}{{ contact.notes }}{% else %}<span class="not-saved">No notes</span>{% endif %}</td>
+        </tr>
+    </table>
 </div>
 {% endblock %}

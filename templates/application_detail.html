@@ -1,81 +1,68 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_badge %}
-{% block title %}Application: {{ application.job_title }}{% endblock %}
+{% block title %}Application{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('applications') }}" class="text-decoration-none small">
-    <i class="bi bi-arrow-left"></i> All applications
-</a>
+{% set iv = application.interview %}
+<a href="{{ url_for('applications') }}" class="back-link">&larr; Back to applications</a>
 
-<div class="d-flex justify-content-between align-items-start mt-2 mb-3">
+<div class="detail-header">
     <div>
-        <h1 class="h3 mb-1">
-            {{ application.job_title }}
-            <span class="fs-6 align-middle">{{ status_badge(application.status) }}</span>
-        </h1>
-        <a href="{{ url_for('company_detail', company_id=application.company_id) }}" class="text-decoration-none">
-            <i class="bi bi-building"></i> {{ application.company_name }}
-        </a>
-        <span class="text-muted">·</span>
-        <a href="{{ url_for('job_detail', job_id=application.job_id) }}" class="text-decoration-none">
-            <i class="bi bi-briefcase"></i> View job
-        </a>
+        <h2>{{ application.job_title }}</h2>
+        <div class="subtitle">
+            at <a href="{{ url_for('company_detail', company_id=application.company_id) }}">{{ application.company_name }}</a>
+        </div>
     </div>
-    <div class="text-nowrap">
-        <a href="{{ url_for('edit_application', application_id=application.application_id) }}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil"></i> Edit
-        </a>
-        <button type="button" class="btn btn-outline-danger"
-                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                data-action="{{ url_for('delete_application', application_id=application.application_id) }}"
-                data-name="your application for {{ application.job_title }} at {{ application.company_name }}">
-            <i class="bi bi-trash"></i> Delete
-        </button>
+    <div class="detail-buttons">
+        <a href="{{ url_for('edit_application', application_id=application.application_id) }}" class="btn btn-outline-primary">Edit</a>
+        <form action="{{ url_for('delete_application', application_id=application.application_id) }}" method="post"
+              data-confirm="Delete this application?">
+            <button class="btn btn-outline-danger">Delete</button>
+        </form>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Application</div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Applied on</dt>
-                    <dd class="col-sm-7">{{ application.application_date }}</dd>
-                    <dt class="col-sm-5">Status</dt>
-                    <dd class="col-sm-7">{{ status_badge(application.status) }}</dd>
-                    <dt class="col-sm-5">Resume version</dt>
-                    <dd class="col-sm-7">{{ application.resume_version or '—' }}</dd>
-                    <dt class="col-sm-5">Cover letter sent</dt>
-                    <dd class="col-sm-7 mb-0">{{ 'Yes' if application.cover_letter_sent else 'No' }}</dd>
-                </dl>
-            </div>
+        <div class="box h-100">
+            <h5>Application</h5>
+            <table class="table detail-table">
+                <tr><th>Status</th><td>{{ status_badge(application.status) }}</td></tr>
+                <tr><th>Applied on</th><td>{{ application.application_date }}</td></tr>
+                <tr>
+                    <th>Resume</th>
+                    <td>{% if application.resume_version %}{{ application.resume_version }}{% else %}<span class="not-saved">Not saved</span>{% endif %}</td>
+                </tr>
+                <tr><th>Cover letter</th><td>{{ 'Sent' if application.cover_letter_sent else 'Not sent' }}</td></tr>
+                <tr>
+                    <th>Job posting</th>
+                    <td>
+                        {% if application.job_url %}
+                            <a href="{{ application.job_url }}" target="_blank">{{ application.job_url | short_url }}</a>
+                        {% else %}
+                            <span class="not-saved">Not saved</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <a href="{{ url_for('job_detail', job_id=application.job_id) }}" class="btn btn-sm btn-outline-primary mt-3">View job details</a>
         </div>
     </div>
 
     <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Interview</div>
-            <div class="card-body">
-                {% set iv = application.interview %}
-                {% if iv %}
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Date</dt>
-                    <dd class="col-sm-8">{{ iv.interview_date or '—' }}</dd>
-                    <dt class="col-sm-4">Type</dt>
-                    <dd class="col-sm-8">{{ iv.interview_type or '—' }}</dd>
-                    <dt class="col-sm-4">Interviewer</dt>
-                    <dd class="col-sm-8">{{ iv.interviewer or '—' }}</dd>
-                    <dt class="col-sm-4">Notes</dt>
-                    <dd class="col-sm-8 mb-0" style="white-space: pre-line;">{{ iv.notes or '—' }}</dd>
-                </dl>
-                {% else %}
-                <p class="text-muted mb-2">No interview yet.</p>
-                <a href="{{ url_for('edit_application', application_id=application.application_id) }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-calendar-plus"></i> Add interview details
-                </a>
-                {% endif %}
-            </div>
+        <div class="box h-100">
+            <h5>Interview</h5>
+            {% if iv %}
+            <table class="table detail-table">
+                <tr><th>Date</th><td>{{ iv.interview_date or '' }}</td></tr>
+                <tr><th>Type</th><td>{{ iv.interview_type or '' }}</td></tr>
+                <tr><th>Interviewer</th><td>{{ iv.interviewer or '' }}</td></tr>
+                <tr><th>Notes</th><td style="white-space: pre-line;">{{ iv.notes or '' }}</td></tr>
+            </table>
+            {% else %}
+            <p class="text-muted">No interview yet.</p>
+            <a href="{{ url_for('edit_application', application_id=application.application_id) }}" class="btn btn-sm btn-outline-primary">Add interview details</a>
+            {% endif %}
         </div>
     </div>
 </div>

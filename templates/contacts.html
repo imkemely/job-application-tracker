@@ -3,16 +3,13 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Contacts</h1>
-    <a href="{{ url_for('add_contact') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Contact
-    </a>
+    <h2 class="mb-0">Contacts</h2>
+    <a href="{{ url_for('add_contact') }}" class="btn btn-primary">Add Contact</a>
 </div>
 
-<form method="get" class="row g-2 mb-3">
+<form method="get" class="row g-2 mb-3 filter-form">
     <div class="col-md-6">
-        <input type="search" name="q" class="form-control" placeholder="Search by name, title, or email"
-               value="{{ search }}">
+        <input type="text" name="q" class="form-control" placeholder="Search name, title or email" value="{{ search }}">
     </div>
     <div class="col-md-3">
         <select name="company_id" class="form-select">
@@ -22,77 +19,46 @@
             {% endfor %}
         </select>
     </div>
-    <div class="col-md-3 d-flex gap-2">
-        <button type="submit" class="btn btn-outline-primary flex-fill"><i class="bi bi-search"></i> Filter</button>
-        {% if search or company_id %}
-            <a href="{{ url_for('contacts') }}" class="btn btn-outline-secondary">Clear</a>
-        {% endif %}
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        {% if search or company_id %}<a href="{{ url_for('contacts') }}" class="btn btn-link">Clear</a>{% endif %}
     </div>
 </form>
 
 {% if contacts %}
-<div class="card table-card shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th>Company</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th class="text-center">LinkedIn</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for k in contacts %}
-                <tr>
-                    <td>
-                        <a href="{{ url_for('contact_detail', contact_id=k.contact_id) }}" class="fw-semibold text-decoration-none">{{ k.contact_name }}</a>
-                        <div class="small text-muted">{{ k.title or '' }}</div>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('company_detail', company_id=k.company_id) }}" class="text-decoration-none text-body">{{ k.company_name }}</a>
-                    </td>
-                    <td>
-                        {% if k.email %}<a href="mailto:{{ k.email }}" class="text-decoration-none">{{ k.email }}</a>{% else %}—{% endif %}
-                    </td>
-                    <td class="text-nowrap">{{ k.phone or '—' }}</td>
-                    <td class="text-center">
-                        {% if k.linkedin_url %}
-                            <a href="{{ k.linkedin_url }}" target="_blank" rel="noopener" title="Open LinkedIn profile">
-                                <i class="bi bi-linkedin"></i>
-                            </a>
-                        {% else %}—{% endif %}
-                    </td>
-                    <td class="actions">
-                        <a href="{{ url_for('contact_detail', contact_id=k.contact_id) }}" class="btn btn-sm btn-outline-secondary" title="View">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <a href="{{ url_for('edit_contact', contact_id=k.contact_id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
-                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                data-action="{{ url_for('delete_contact', contact_id=k.contact_id) }}"
-                                data-name="{{ k.contact_name }} ({{ k.company_name }})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% elif search or company_id %}
-<div class="text-center text-muted py-5">
-    No contacts match your filters. <a href="{{ url_for('contacts') }}">Show all contacts.</a>
+<div class="table-responsive">
+    <table class="table table-hover bg-white align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k in contacts %}
+            <tr>
+                <td><a href="{{ url_for('contact_detail', contact_id=k.contact_id) }}">{{ k.contact_name }}</a></td>
+                <td>{{ k.title or '' }}</td>
+                <td>{{ k.company_name }}</td>
+                <td>{% if k.email %}<a href="mailto:{{ k.email }}">{{ k.email }}</a>{% endif %}</td>
+                <td class="text-nowrap">{{ k.phone or '' }}</td>
+                <td class="text-end text-nowrap">
+                    <a href="{{ url_for('edit_contact', contact_id=k.contact_id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form action="{{ url_for('delete_contact', contact_id=k.contact_id) }}" method="post" class="d-inline"
+                          data-confirm="Delete {{ k.contact_name }}?">
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% else %}
-<div class="text-center text-muted py-5">
-    <i class="bi bi-person-lines-fill display-6 d-block mb-2"></i>
-    No contacts yet. <a href="{{ url_for('add_contact') }}">Add your first one.</a>
-</div>
+<p class="text-muted">No contacts found.</p>
 {% endif %}
 {% endblock %}

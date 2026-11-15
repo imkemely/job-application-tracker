@@ -1,13 +1,9 @@
-"""Database helpers for the Job Application Tracker.
-
-Connection settings come from a .env file (see .env.example) so that
-nobody's MySQL password gets committed to GitHub.
-"""
 import os
 
 import mysql.connector
 from dotenv import load_dotenv
 
+# connection settings live in .env so my password isn't on GitHub
 load_dotenv()
 
 DB_CONFIG = {
@@ -20,15 +16,11 @@ DB_CONFIG = {
 
 
 def get_db():
-    """Open a new connection to the job_tracker database."""
     return mysql.connector.connect(**DB_CONFIG)
 
 
 def query(sql, params=None, one=False):
-    """Run a SELECT and return rows as dictionaries.
-
-    With one=True, return just the first row (or None if there isn't one).
-    """
+    # for SELECTs. returns a list of dicts, or just the first row if one=True
     conn = get_db()
     try:
         cursor = conn.cursor(dictionary=True)
@@ -44,10 +36,7 @@ def query(sql, params=None, one=False):
 
 
 def execute(sql, params=None):
-    """Run an INSERT, UPDATE or DELETE and commit it.
-
-    Returns the new row's id for inserts (0 for updates/deletes).
-    """
+    # for INSERT / UPDATE / DELETE. returns the new id after an INSERT
     conn = get_db()
     try:
         cursor = conn.cursor()

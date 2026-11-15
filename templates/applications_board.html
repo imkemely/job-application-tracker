@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Applications Board{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Applications</h2>
+    <a href="{{ url_for('add_application') }}" class="btn btn-primary">Add Application</a>
+</div>
+
+<div class="view-switch mb-3">
+    <a href="{{ url_for('applications') }}">List</a>
+    <a href="{{ url_for('applications_board') }}" class="active">Board</a>
+</div>
+
+<p class="text-muted">Drag a card to another column to change its status.</p>
+
+<div class="board">
+    {% for status, cards in columns.items() %}
+    <div class="board-col" data-status="{{ status }}">
+        <div class="board-col-header">
+            <span class="badge status status-{{ status|lower }}">{{ status }}</span>
+            <span class="text-muted col-count">{{ cards|length }}</span>
+        </div>
+        {% for a in cards %}
+        <div class="board-card" draggable="true" data-id="{{ a.application_id }}">
+            <a href="{{ url_for('application_detail', application_id=a.application_id) }}" class="list-link">{{ a.job_title }}</a>
+            <div class="text-muted">{{ a.company_name }}</div>
+            <div class="text-muted card-date">{{ a.application_date }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script>
+    let dragged = null;
+
+    document.querySelectorAll(".board-card").forEach(function (card) {
+        card.addEventListener("dragstart", function () {
+            dragged = card;
+            card.classList.add("dragging");
+        });
+        card.addEventListener("dragend", function () {
+            card.classList.remove("dragging");
+        });
+    });
+
+    document.querySelectorAll(".board-col").forEach(function (col) {
+        col.addEventListener("dragover", function (e) {
+            e.preventDefault();  // needed so the column accepts the drop
+            col.classList.add("drag-over");
+        });
+        col.addEventListener("dragleave", function () {
+            col.classList.remove("drag-over");
+        });
+        col.addEventListener("drop", function (e) {
+            e.preventDefault();
+            col.classList.remove("drag-over");
+            if (!dragged || dragged.parentElement === col) {
+                return;
+            }
+
+            const oldCol = dragged.parentElement;
+            col.appendChild(dragged);
+            updateCounts();
+
+            // save the new status in the database
+            fetch("/applications/" + dragged.dataset.id + "/status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: col.dataset.status })
+            })
+            .then(function (response) {
+                if (!response.ok) throw new Error();
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.celebrate) {
+                    confetti({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: { y: 0.6 },
+                        colors: ["#bfe0f8", "#ffe89a", "#a9d4f5", "#fff6d6", "#d2f0dc"]
+                    });
+                }
+            })
+            .catch(function () {
+                // put the card back if saving didn't work
+                oldCol.appendChild(dragged);
+                updateCounts();
+                alert("Couldn't save that change. Is the app still running?");
+            });
+        });
+    });
+
+    function updateCounts() {
+        document.querySelectorAll(".board-col").forEach(function (col) {
+            col.querySelector(".col-count").textContent = col.querySelectorAll(".board-card").length;
+        });
+    }
+</script>
+{% endblock %}

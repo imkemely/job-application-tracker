@@ -1,151 +1,71 @@
 {% extends "base.html" %}
-{% from "_macros.html" import salary_range, status_badge %}
+{% from "_macros.html" import status_badge %}
 {% block title %}Job Match{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-1">Job Match</h1>
-<p class="text-muted">Enter your skills and see which saved jobs fit you best.</p>
+<h2>Job Match</h2>
+<p class="text-muted">Pick your skills and it ranks your saved jobs by how many of their skills you have.</p>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <form method="get" id="matchForm">
-            <label for="skills" class="form-label fw-semibold">Your skills</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="skills" name="skills"
-                       placeholder="Python, SQL, Flask" value="{{ skills_text }}" autofocus>
-                <button type="submit" class="btn btn-primary"><i class="bi bi-stars"></i> Find Matches</button>
-            </div>
-            <div class="form-text">Separate skills with commas. Matching ignores upper/lower case.</div>
-
-            <div class="form-check mt-2">
-                <input class="form-check-input" type="checkbox" id="show_all" name="show_all"
-                       {% if show_all %}checked{% endif %} onchange="this.form.submit()">
-                <label class="form-check-label small" for="show_all">Also show jobs with 0% match</label>
-            </div>
-
-            {% if skill_options %}
-            <div class="mt-3">
-                <div class="small text-muted mb-1">Click to add a skill from your saved jobs:</div>
-                {% for skill in skill_options %}
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mb-1 skill-chip">{{ skill }}</button>
-                {% endfor %}
-                {% if skills_text %}
-                    <a href="{{ url_for('job_match') }}" class="btn btn-sm btn-link mb-1">Clear</a>
-                {% endif %}
-            </div>
-            {% endif %}
-        </form>
+<form method="get" class="form-box mb-4">
+    <label class="form-label fw-bold">Click the skills you have</label>
+    <div class="skill-picker">
+        {% for s in skill_options %}
+            <input type="checkbox" class="btn-check" name="skill" value="{{ s }}" id="skill-{{ loop.index }}"
+                   {% if s.lower() in picked %}checked{% endif %}>
+            <label class="btn skill-pill" for="skill-{{ loop.index }}">{{ s }}</label>
+        {% endfor %}
     </div>
-</div>
 
-{% if user_skills %}
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <label for="skills" class="form-label fw-bold mt-3">Anything else? Type it here</label>
+    <input type="text" class="form-control" id="skills" name="skills"
+           placeholder="Separate with commas, like: Docker, Figma" value="{{ skills_text }}">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="show_all" name="show_all" {% if show_all %}checked{% endif %}>
+            <label class="form-check-label" for="show_all">Show 0% matches too</label>
+        </div>
         <div>
-            <span class="fw-semibold">Your skills:</span>
-            {% for s in user_skills %}<span class="badge bg-primary skill-badge">{{ s }}</span>{% endfor %}
-        </div>
-        <div class="small text-muted">
-            {{ results|length }} matching job{{ '' if results|length == 1 else 's' }}
-            {% if hidden %}· {{ hidden }} with 0% hidden{% endif %}
+            {% if my_skills %}<a href="{{ url_for('job_match') }}" class="btn btn-link">Clear</a>{% endif %}
+            <button type="submit" class="btn btn-primary">Find matches</button>
         </div>
     </div>
+</form>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
+{% if my_skills %}
+    {% if results %}
+    <table class="table bg-white align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Job</th>
+                <th>Match</th>
+                <th>Have</th>
+                <th>Missing</th>
+                <th>Applied?</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for r in results %}
-            {% set color = 'success' if r.percent >= 75 else ('warning' if r.percent >= 50 else ('danger' if r.percent > 0 else 'secondary')) %}
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div>
-                            <div class="text-muted small">#{{ loop.index }}</div>
-                            <a href="{{ url_for('job_detail', job_id=r.job.job_id) }}" class="h5 text-decoration-none">{{ r.job.job_title }}</a>
-                            <div class="text-muted small">
-                                {{ r.job.company_name }}
-                                {% if r.job.job_type %} · {{ r.job.job_type }}{% endif %}
-                                {% if r.job.salary_min or r.job.salary_max %} · {{ salary_range(r.job.salary_min, r.job.salary_max) }}{% endif %}
-                            </div>
-                        </div>
-                        <div class="text-end text-nowrap">
-                            <div class="match-percent text-{{ color }}">{{ r.percent }}%</div>
-                            <div class="small text-muted">{{ r.matched|length }}/{{ r.total }} skills</div>
-                        </div>
-                    </div>
-
-                    <div class="progress my-3" style="height: 8px;" role="progressbar" aria-label="Match"
-                         aria-valuenow="{{ r.percent }}" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar bg-{{ color }}" style="width: {{ r.percent }}%"></div>
-                    </div>
-
-                    <div class="small">
-                        {% if r.matched %}
-                            <span class="text-muted me-1">Have:</span>
-                            {% for s in r.matched %}<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle skill-badge"><i class="bi bi-check-lg"></i> {{ s }}</span>{% endfor %}
-                        {% endif %}
-                        {% if r.missing %}
-                            <div class="mt-1">
-                                <span class="text-muted me-1">Missing:</span>
-                                {% for s in r.missing %}<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle skill-badge">{{ s }}</span>{% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mt-3">
-                        {% if r.job.application_status %}
-                            <span class="small text-muted">You applied:</span> {{ status_badge(r.job.application_status) }}
-                        {% else %}
-                            <a href="{{ url_for('add_application', job_id=r.job.job_id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-send"></i> Log an application
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-search display-6 d-block mb-2"></i>
-                None of your saved jobs list these skills.
-                {% if hidden %}Tick "Also show jobs with 0% match" to see them anyway.{% endif %}
-            </div>
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <a href="{{ url_for('job_detail', job_id=r.job.job_id) }}">{{ r.job.job_title }}</a>
+                    <div class="text-muted">{{ r.job.company_name }}</div>
+                </td>
+                <td class="text-nowrap">
+                    <strong class="{% if r.percent >= 75 %}match-high{% elif r.percent >= 50 %}match-mid{% else %}match-low{% endif %}">{{ r.percent }}%</strong>
+                    <span class="text-muted">({{ r.matched|length }}/{{ r.total }} skills)</span>
+                </td>
+                <td>{{ r.matched|join(', ') }}</td>
+                <td class="missing">{{ r.missing|join(', ') }}</td>
+                <td>{% if r.job.applied_status %}{{ status_badge(r.job.applied_status) }}{% else %}No{% endif %}</td>
+            </tr>
             {% endfor %}
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white fw-semibold">Skills worth learning</div>
-                <div class="card-body">
-                    {% if skills_to_learn %}
-                        <ul class="list-unstyled mb-2">
-                            {% for skill, n in skills_to_learn %}
-                            <li class="d-flex justify-content-between mb-1">
-                                <span>{{ skill }}</span>
-                                <span class="text-muted small">in {{ n }} job{{ '' if n == 1 else 's' }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        <p class="small text-muted mb-0">Skills you're missing that come up most in the jobs above.</p>
-                    {% else %}
-                        <p class="text-muted mb-0">You're not missing anything from these jobs. 🎉</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">None of your saved jobs ask for these skills.</p>
+    {% endif %}
 {% endif %}
-
-<script>
-    // Clicking a skill chip adds it to the skills box (unless it's already there)
-    document.querySelectorAll(".skill-chip").forEach(function (chip) {
-        chip.addEventListener("click", function () {
-            const input = document.getElementById("skills");
-            const current = input.value.split(",").map(s => s.trim()).filter(Boolean);
-            const skill = chip.textContent.trim();
-            if (!current.some(s => s.toLowerCase() === skill.toLowerCase())) {
-                current.push(skill);
-            }
-            input.value = current.join(", ");
-            input.focus();
-        });
-    });
-</script>
 {% endblock %}
