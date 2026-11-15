@@ -27,14 +27,14 @@
                 {% for c in companies %}
                 <tr>
                     <td>
-                        <a href="{{ url_for('company_detail', company_id=c.company_id) }}" class="fw-semibold text-decoration-none">
-                            {{ c.company_name }}
-                        </a>
-                        {% if c.website %}
-                            <a href="{{ c.website }}" target="_blank" rel="noopener" class="ms-1 text-muted" title="Open website">
-                                <i class="bi bi-box-arrow-up-right small"></i>
-                            </a>
-                        {% endif %}
+                        <span class="text-nowrap">
+                            <a href="{{ url_for('company_detail', company_id=c.company_id) }}" class="fw-semibold text-decoration-none">{{ c.company_name }}</a>
+                            {%- if c.website %}
+                                <a href="{{ c.website }}" target="_blank" rel="noopener" class="ms-1 text-muted" title="Open website">
+                                    <i class="bi bi-box-arrow-up-right small"></i>
+                                </a>
+                            {%- endif %}
+                        </span>
                     </td>
                     <td>{{ c.industry or '—' }}</td>
                     <td>

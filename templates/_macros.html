@@ -1,0 +1,26 @@
+{# Small reusable pieces of HTML. Import with:
+   {% from "_macros.html" import salary_range, skill_badges, status_badge %} #}
+
+{% macro salary_range(min_value, max_value) -%}
+    {%- if min_value and max_value -%}
+        {{ min_value | money }} – {{ max_value | money }}
+    {%- elif min_value -%}
+        From {{ min_value | money }}
+    {%- elif max_value -%}
+        Up to {{ max_value | money }}
+    {%- else -%}
+        <span class="text-muted">—</span>
+    {%- endif -%}
+{%- endmacro %}
+
+{% macro skill_badges(skills, color="light") -%}
+    {%- for skill in skills -%}
+        <span class="badge rounded-pill skill-badge {% if color == 'light' %}bg-light text-dark border{% else %}bg-{{ color }}{% endif %}">{{ skill }}</span>
+    {%- else -%}
+        <span class="text-muted small">No skills listed</span>
+    {%- endfor -%}
+{%- endmacro %}
+
+{% macro status_badge(status) -%}
+    <span class="badge bg-{{ STATUS_COLORS.get(status, 'secondary') }}">{{ status }}</span>
+{%- endmacro %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "_macros.html" import salary_range, skill_badges %}
+{% block title %}Jobs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Jobs</h1>
+    <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Job
+    </a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input type="search" name="q" class="form-control" placeholder="Search by job title or company"
+               value="{{ search }}">
+    </div>
+    <div class="col-md-3">
+        <select name="type" class="form-select">
+            <option value="">All job types</option>
+            {% for t in JOB_TYPES %}
+                <option value="{{ t }}" {% if t == job_type %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-outline-primary flex-fill"><i class="bi bi-search"></i> Filter</button>
+        {% if search or job_type %}
+            <a href="{{ url_for('jobs') }}" class="btn btn-outline-secondary">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
+{% if jobs %}
+<div class="card table-card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Job</th>
+                    <th>Type</th>
+                    <th>Salary</th>
+                    <th>Skills</th>
+                    <th>Posted</th>
+                    <th class="text-center">Apps</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in jobs %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('job_detail', job_id=j.job_id) }}" class="fw-semibold text-decoration-none">{{ j.job_title }}</a>
+                        <div class="small text-muted">{{ j.company_name }}</div>
+                    </td>
+                    <td class="text-nowrap">{{ j.job_type or '—' }}</td>
+                    <td class="text-nowrap">{{ salary_range(j.salary_min, j.salary_max) }}</td>
+                    <td style="min-width: 180px;">{{ skill_badges(j.skills) }}</td>
+                    <td class="text-nowrap">{{ j.date_posted or '—' }}</td>
+                    <td class="text-center">{{ j.application_count }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('job_detail', job_id=j.job_id) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('edit_job', job_id=j.job_id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                data-action="{{ url_for('delete_job', job_id=j.job_id) }}"
+                                data-name="{{ j.job_title }} at {{ j.company_name }}"
+                                data-warning="{% if j.application_count %}This also deletes {{ j.application_count }} application(s) for this job.{% endif %}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif search or job_type %}
+<div class="text-center text-muted py-5">
+    No jobs match your filters. <a href="{{ url_for('jobs') }}">Show all jobs.</a>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-briefcase display-6 d-block mb-2"></i>
+    No jobs yet. <a href="{{ url_for('add_job') }}">Add your first one.</a>
+</div>
+{% endif %}
+{% endblock %}
