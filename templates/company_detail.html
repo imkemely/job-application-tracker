@@ -77,12 +77,17 @@
     </div>
 
     <div class="col-lg-5">
-        <h2 class="h5">Contacts <span class="badge bg-secondary">{{ contacts|length }}</span></h2>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Contacts <span class="badge bg-secondary">{{ contacts|length }}</span></h2>
+            <a href="{{ url_for('add_contact', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg"></i> Add contact
+            </a>
+        </div>
         {% if contacts %}
         <ul class="list-group shadow-sm">
             {% for k in contacts %}
             <li class="list-group-item">
-                <div class="fw-semibold">{{ k.contact_name }}</div>
+                <a href="{{ url_for('contact_detail', contact_id=k.contact_id) }}" class="fw-semibold text-decoration-none">{{ k.contact_name }}</a>
                 <div class="small text-muted">{{ k.title or '' }}</div>
                 {% if k.email %}<div class="small"><i class="bi bi-envelope"></i> {{ k.email }}</div>{% endif %}
             </li>
