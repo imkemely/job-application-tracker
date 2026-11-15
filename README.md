@@ -4,7 +4,7 @@ COP 4751 (Advanced Database Management) course project, Fall 2026.
 
 A web app for keeping track of my job search: the companies I'm looking at, the jobs I've saved, the applications I've sent, and the people I've talked to. It's built with MySQL, Python/Flask, and HTML/CSS (Bootstrap).
 
-The data in `schema.sql` is my actual job search from this semester. Contacts only use first name + last initial since this repo is public.
+The data in `schema.sql` is a fraction my actual job search. Contacts only use first name + last initial since this repo is public.
 
 ## Features
 
