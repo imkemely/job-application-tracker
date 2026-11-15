@@ -83,3 +83,10 @@ a.stat-card:hover {
     font-weight: 500;
     margin: 0 4px 4px 0;
 }
+
+/* Job Match */
+.match-percent {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+}

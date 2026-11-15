@@ -898,6 +898,119 @@ def delete_contact(contact_id):
 
 
 # ------------------------------------------------------------
+# Job Match
+# ------------------------------------------------------------
+# Different ways people write the same skill, all mapped to one name
+SKILL_ALIASES = {
+    "js": "javascript",
+    "ts": "typescript",
+    "py": "python",
+    "python3": "python",
+    "k8s": "kubernetes",
+    "postgres": "postgresql",
+    "springboot": "spring boot",
+    "node": "node.js",
+    "nodejs": "node.js",
+    "reactjs": "react",
+    "react.js": "react",
+    "amazon web services": "aws",
+    "html5": "html",
+    "css3": "css",
+}
+
+
+def normalize_skill(skill):
+    """Lowercase, trim, collapse spaces and apply aliases so "  Py " matches "Python"."""
+    key = " ".join(skill.lower().split())
+    return SKILL_ALIASES.get(key, key)
+
+
+def match_jobs(user_skills, jobs):
+    """Score every job against the user's skills.
+
+    match % = (required skills the user has) / (total required skills) * 100
+
+    Returns a list of result dicts sorted best match first. Jobs that don't
+    list any required skills are skipped, since there's nothing to compare.
+    """
+    have = {normalize_skill(s) for s in user_skills}
+    results = []
+
+    for job in jobs:
+        if not job["skills"]:
+            continue
+        matched, missing = [], []
+        for skill in job["skills"]:
+            (matched if normalize_skill(skill) in have else missing).append(skill)
+
+        total = len(job["skills"])
+        results.append({
+            "job": job,
+            "matched": matched,
+            "missing": missing,
+            "total": total,
+            "percent": round(len(matched) * 100 / total),
+        })
+
+    # Highest % first; ties go to the job where you match more skills, then by title
+    results.sort(key=lambda r: (-r["percent"], -len(r["matched"]), r["job"]["job_title"].lower()))
+    return results
+
+
+@app.route("/job-match")
+def job_match():
+    skills_text = request.args.get("skills", "")
+    user_skills = parse_skills(skills_text)
+    show_all = request.args.get("show_all") == "on"
+
+    jobs_with_skills = add_skills(query(
+        """
+        SELECT j.job_id, j.job_title, j.job_type, j.salary_min, j.salary_max, j.requirements,
+               c.company_name,
+               (SELECT a.status FROM applications a WHERE a.job_id = j.job_id
+                ORDER BY a.application_date DESC LIMIT 1) AS application_status
+        FROM jobs j
+        JOIN companies c ON c.company_id = j.company_id
+        """
+    ))
+
+    # Every skill that appears in any job, for the "click to add" chips
+    all_skills = {}
+    for job in jobs_with_skills:
+        for skill in job["skills"]:
+            all_skills.setdefault(normalize_skill(skill), skill)
+    skill_options = sorted(all_skills.values(), key=str.lower)
+
+    results, hidden, skills_to_learn = [], 0, []
+    if user_skills:
+        results = match_jobs(user_skills, jobs_with_skills)
+        if not show_all:
+            hidden = sum(1 for r in results if r["percent"] == 0)
+            results = [r for r in results if r["percent"] > 0]
+
+        # Missing skills that show up most often in the jobs you partly match
+        missing_counts = Counter()
+        names = {}
+        for r in results:
+            for skill in r["missing"]:
+                key = normalize_skill(skill)
+                missing_counts[key] += 1
+                names.setdefault(key, skill)
+        skills_to_learn = [(names[key], n) for key, n in missing_counts.most_common(5)]
+
+    return render_template(
+        "job_match.html",
+        skills_text=skills_text,
+        user_skills=user_skills,
+        show_all=show_all,
+        results=results,
+        hidden=hidden,
+        skills_to_learn=skills_to_learn,
+        skill_options=skill_options,
+    )
+
+
+# ------------------------------------------------------------
 # Error pages
 # ------------------------------------------------------------
 @app.errorhandler(mysql.connector.Error)
